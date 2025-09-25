@@ -6,9 +6,9 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 
 from products.models import Product
-from .forms import OrderForm, Order
+from .forms import OrderForm
 from basket.contexts import basket_contents
-from .models import OrderLineItem
+from .models import Order, OrderLineItem
 from profiles.models import AccountProfile
 from profiles.forms import AccountProfileForm
 
@@ -91,6 +91,10 @@ def checkout(request):
                 return redirect(reverse('view_basket'))
 
             request.session['save_info'] = 'save-info' in request.POST
+            messages.success(
+                request,
+                'Payment authorised! We are preparing your eco-friendly order.',
+            )
             return redirect(reverse(
                 'checkout_complete', args=[order.order_number])
                 )
@@ -111,6 +115,10 @@ def checkout(request):
         payment_intent_id = client_secret.split('_secret')[0]
         order.stripe_payment_intent_id = payment_intent_id
         order.existing_basket = json.dumps(basket)
+        order.delivery_eta = order.estimate_delivery_eta()
+        order.payment_status = Order.PaymentStatus.PAID
+        order.payment_message = 'Stripe confirmed your payment.'
+        order.order_status = Order.OrderStatus.PROCESSING
 
         try:
             order.save()
@@ -125,13 +133,25 @@ def checkout(request):
         try:
             for item_id, item_data in basket.items():
                 product = Product.objects.get(id=item_id)
+                if not product.can_fulfil_order(item_data):
+                    message = (
+                        f'Only {product.inventory_count} of {product.name} remain. '
+                        'Please adjust your basket before checking out again.'
+                    )
+                    messages.error(request, message)
+                    order.mark_payment_failed(message)
+                    order.delete()
+                    return False
                 OrderLineItem.objects.create(
                     order=order, product=product, quantity=item_data
                     )
         except Product.DoesNotExist:
-            messages.error(
-                request, "One of the products in your basket wasn't found in our database. Please call us for assistance!"  # noqa
-                )
+            message = (
+                "One of the products in your basket wasn't found in our database. "
+                "Please call us for assistance!"
+            )
+            messages.error(request, message)
+            order.mark_payment_failed(message)
             order.delete()
             return False
         return True
@@ -140,6 +160,16 @@ def checkout(request):
         return sum(
             item_data * Product.objects.get(id=item_id).price for item_id, item_data in basket.items()  # noqa
             )
+
+    def estimate_delivery_from_basket(basket_items):
+        estimates = [
+            item['product'].estimate_delivery_date()
+            for item in basket_items
+            if hasattr(item.get('product'), 'estimate_delivery_date')
+        ]
+        if not estimates:
+            return None
+        return max(estimates)
 
     def handle_get_request(request, stripe_public_key):
         basket = request.session.get('basket', {})
@@ -157,11 +187,15 @@ def checkout(request):
             return redirect(reverse('view_basket'))
 
         order_form = initialize_order_form(request)
+        estimated_delivery_date = estimate_delivery_from_basket(
+            current_basket['basket_items']
+        )
 
         context = {
             'order_form': order_form,
             'stripe_public_key': stripe_public_key,
             'client_secret': payment_intent.client_secret,
+            'estimated_delivery_date': estimated_delivery_date,
         }
 
         return render(request, 'checkout/checkout.html', context)
@@ -207,6 +241,7 @@ def checkout(request):
             'county': request.POST['county'],
             'postcode': request.POST['postcode'],
             'country': request.POST['country'],
+            'delivery_notes': request.POST.get('delivery_notes', ''),
         }
 
     if request.method == 'POST':

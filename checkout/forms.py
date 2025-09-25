@@ -12,7 +12,7 @@ class OrderForm(forms.ModelForm):
         fields = [
             'customer_name', 'email', 'phone_number',
             'address', 'city', 'postcode', 'county',
-            'country',
+            'country', 'delivery_notes'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -36,6 +36,7 @@ class OrderForm(forms.ModelForm):
             'postcode': 'Postal or Zip Code',
             'county': 'County or State',
             'country': 'Country',
+            'delivery_notes': 'Delivery instructions (optional)',
         }
 
         for field_name, field in self.fields.items():
@@ -49,3 +50,6 @@ class OrderForm(forms.ModelForm):
             if field.required:
                 placeholder += ' *'
             field.widget.attrs['placeholder'] = placeholder
+
+            if field_name == 'delivery_notes':
+                field.widget.attrs['rows'] = 3

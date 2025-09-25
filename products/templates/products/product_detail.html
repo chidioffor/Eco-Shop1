@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
- 
+
 {% block page_header %}
     <div class="container header-container">
         <div class="row">
@@ -8,7 +8,7 @@
         </div>
     </div>
 {% endblock %}
- 
+
 {% block content %}
     <div class="overlay"></div>
     <div class="container-fluid">
@@ -28,11 +28,14 @@
             </div>
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="product-details-container mb-5 mt-md-5">
-                    <h4 class="display-7 mb-3">{{ product.name }}</h4>
+                    <h4 class="display-7 mb-2">{{ product.name }}</h4>
+                    {% if product.brand %}
+                        <p class="text-muted mb-2">by {{ product.brand }}</p>
+                    {% endif %}
                     <p class="lead mb-3 text-dark font-weight-bold">${{ product.price }}</p>
                     {% if product.category %}
                     <p class="mb-3">
-                        <a href="{% url 'products' %}?category={{ product.category.name }}" class="text-decoration-none">                        
+                        <a href="{% url 'products' %}?category={{ product.category.slug|default:product.category.name }}" class="text-decoration-none">
                             <span class="badge bg-secondary">{{ product.category.friendly_name }}</span>
                         </a>
                     </p>
@@ -45,6 +48,24 @@
                     {% else %}
                         <p class="mb-3 text-muted">No Rating</p>
                     {% endif %}
+                    {% if product.short_description %}
+                        <p class="mb-3 text-muted">{{ product.short_description }}</p>
+                    {% endif %}
+                    <div class="mb-3">
+                        {% if product.is_digital %}
+                            <span class="badge bg-success"><i class="fa-solid fa-cloud-arrow-down me-1"></i>Digital download</span>
+                        {% elif product.is_in_stock %}
+                            <span class="badge {% if product.is_low_stock %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                {% if product.is_low_stock %}
+                                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Low stock – {{ product.inventory_count }} left
+                                {% else %}
+                                    <i class="fa-solid fa-box-open me-1"></i>In stock
+                                {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger"><i class="fa-solid fa-clock-rotate-left me-1"></i>Restocking soon</span>
+                        {% endif %}
+                    </div>
                     {% if request.user.is_superuser %}
                         <div class="ms-3 mb-3">
                             <a href="{% url 'update_product' product.id %}" class="btn btn-sm btn-outline-primary me-2">Update</a>
@@ -57,18 +78,24 @@
                         <div class="mb-4">
                             <label for="id_qty_{{ product.id }}" class="form-label"><strong>Quantity:</strong></label>
                             <div class="input-group">
-                                <button class="btn btn-outline-dark qty-btn" type="button" id="decrease-qty">
+                                <button class="btn btn-outline-dark qty-btn" type="button" id="decrease-qty" {% if not product.is_in_stock and not product.is_digital %}disabled{% endif %}>
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <input class="form-control qty_input text-center" type="number"
-                                    name="quantity" value="1" min="1" max="99" data-item_id="{{ product.id }}" id="id_qty_{{ product.id }}">
-                                <button class="btn btn-outline-dark qty-btn" type="button" id="increase-qty">
+                                {% with max_qty=product.max_order_quantity %}
+                                    <input class="form-control qty_input text-center" type="number"
+                                        name="quantity" value="1" min="1" {% if max_qty %}max="{{ max_qty }}"{% endif %}
+                                        data-item_id="{{ product.id }}" id="id_qty_{{ product.id }}" {% if not product.is_in_stock and not product.is_digital %}disabled{% endif %}>
+                                {% endwith %}
+                                <button class="btn btn-outline-dark qty-btn" type="button" id="increase-qty" {% if not product.is_in_stock and not product.is_digital %}disabled{% endif %}>
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
+                            {% if not product.is_in_stock and not product.is_digital %}
+                                <p class="text-danger small mt-2"><i class="fa-solid fa-clock"></i> This item is currently out of stock. Leave your email during checkout to be notified once it returns.</p>
+                            {% endif %}
                         </div>
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg text-uppercase">
+                            <button type="submit" class="btn btn-success btn-lg text-uppercase" {% if not product.is_in_stock and not product.is_digital %}disabled{% endif %}>
                                 <i class="fas fa-shopping-basket me-2"></i>Add to Basket
                             </button>
                             <a href="{% url 'products' %}" class="btn btn-outline-dark btn-lg text-uppercase">
@@ -77,27 +104,67 @@
                         </div>
                         <input type="hidden" name="redirect_url" value="{{ request.path }}">
                     </form>
+                    {% if product.is_in_stock or product.is_digital %}
+                        <p class="mt-3 text-muted"><i class="fa-solid fa-truck me-1"></i> Estimated delivery: {{ product.estimate_delivery_date|date:"l, d F Y" }}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
+        {% if related_products %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <h5 class="mb-3">You may also like</h5>
+            </div>
+            {% for related in related_products %}
+                <div class="col-6 col-md-3 mb-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <a href="{% url 'product_detail' related.id %}" class="text-decoration-none">
+                            {% if related.product_image %}
+                                <img src="{{ related.product_image.url }}" class="card-img-top" alt="{{ related.name }}">
+                            {% else %}
+                                <img src="{{ MEDIA_URL }}noimage.png" class="card-img-top" alt="{{ related.name }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h6 class="card-title">{{ related.name }}</h6>
+                                <p class="text-muted small mb-1">${{ related.price }}</p>
+                                {% if related.short_description %}
+                                    <p class="small text-muted">{{ related.short_description }}</p>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 {% endblock %}
 
 {% block postloadjs %}
     {{ block.super }}
     <script>
-        document.getElementById('decrease-qty').addEventListener('click', function() {
-            var input = document.getElementById('id_qty_{{ product.id }}');
-            if (input.value > 1) {
-                input.value = parseInt(input.value) - 1;
-            }
-        });
-     
-        document.getElementById('increase-qty').addEventListener('click', function() {
-            var input = document.getElementById('id_qty_{{ product.id }}');
-            if (input.value < 99) {
-                input.value = parseInt(input.value) + 1;
-            }
-        });
+        const decrementButton = document.getElementById('decrease-qty');
+        const incrementButton = document.getElementById('increase-qty');
+        const quantityInput = document.getElementById('id_qty_{{ product.id }}');
+
+        if (decrementButton && quantityInput) {
+            decrementButton.addEventListener('click', function() {
+                const minValue = parseInt(quantityInput.min || '1', 10);
+                const currentValue = parseInt(quantityInput.value || minValue, 10);
+                if (currentValue > minValue) {
+                    quantityInput.value = currentValue - 1;
+                }
+            });
+        }
+
+        if (incrementButton && quantityInput) {
+            incrementButton.addEventListener('click', function() {
+                const maxValue = quantityInput.max ? parseInt(quantityInput.max, 10) : null;
+                const currentValue = parseInt(quantityInput.value || '1', 10);
+                if (!maxValue || currentValue < maxValue) {
+                    quantityInput.value = currentValue + 1;
+                }
+            });
+        }
     </script>
 {% endblock %}

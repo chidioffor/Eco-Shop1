@@ -4,7 +4,7 @@ from django.db.models.functions import Lower
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 
-from .models import Product
+from .models import Product, Category
 from .forms import ProductForm
 
 
@@ -24,7 +24,7 @@ def fetch_all_products(request):
         products/products.html with the filtered product list
         and context for sorting and filtering UI.
     """
-    products = Product.objects.all()
+    products = Product.objects.filter(is_active=True).select_related('category')
     search_query = request.GET.get('q', '').strip()
     categories = get_categories_from_request(request)
     sort = None
@@ -71,13 +71,19 @@ def get_categories_from_request(request):
 
 def filter_products_by_category(products, categories):
     """Filter products based on selected categories."""
-    return products.filter(category__name__in=categories)
+    return products.filter(
+        Q(category__name__in=categories) | Q(category__slug__in=categories)
+    )
 
 
 def filter_products_by_query(products, query):
     """Filter products based on search query."""
-    search_conditions = Q(name__icontains=query) | Q(
-        description__icontains=query
+    search_conditions = (
+        Q(name__icontains=query)
+        | Q(description__icontains=query)
+        | Q(short_description__icontains=query)
+        | Q(brand__icontains=query)
+        | Q(category__friendly_name__icontains=query)
     )
     return products.filter(search_conditions)
 
@@ -89,16 +95,31 @@ def create_context(products, search_term, categories, current_sorting):
         'search_term': search_term,
         'current_categories': categories,
         'current_sorting': current_sorting,
+        'category_metadata': Category.objects.order_by('display_order', 'name'),
     }
 
 
 def product_detail(request, product_id):
-    """ Show specific product details """
+    """Show specific product details along with related recommendations."""
 
-    product = get_object_or_404(Product, pk=product_id)
+    product = get_object_or_404(
+        Product.objects.select_related('category'),
+        pk=product_id,
+        is_active=True,
+    )
+
+    related_products = (
+        Product.objects.filter(
+            category=product.category,
+            is_active=True,
+        )
+        .exclude(pk=product.pk)
+        .order_by('-created_on')[:4]
+    )
 
     context = {
-        'product': product
+        'product': product,
+        'related_products': related_products,
     }
 
     return render(request, 'products/product_detail.html', context)

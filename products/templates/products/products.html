@@ -1,7 +1,7 @@
 {% extends "base.html" %}
- 
+
 {% load static %}
- 
+
 {% block page_header %}
     <div class="container header-container">
         <div class="row">
@@ -9,7 +9,7 @@
         </div>
     </div>
 {% endblock %}
- 
+
 {% block content %}
     <div class="overlay"></div>
     <div class="container-fluid">
@@ -62,19 +62,36 @@
 
                             <div class="card-body d-flex flex-column">
                                 <h6 class="card-title">{{ product.name }}</h6>
+                                {% if product.brand %}
+                                    <p class="text-muted small mb-1">by {{ product.brand }}</p>
+                                {% endif %}
                                 <p class="card-text mt-auto">
                                     <span class="h6 fw-bold">${{ product.price }}</span>
                                     {% if product.category %}
-                                    <a href="{% url 'products' %}?category={{ product.category.name }}">
+                                    <a href="{% url 'products' %}?category={{ product.category.slug|default:product.category.name }}">
                                         <span class="badge bg-secondary ms-2">{{ product.category.friendly_name }}</span>
                                     </a>
                                     {% endif %}
                                 </p>
+                                {% if product.short_description %}
+                                    <p class="text-muted small mb-2">{{ product.short_description }}</p>
+                                {% endif %}
                                 {% if product.rating %}
                                     <p class="card-text"><small class="text-muted"><i class="fas fa-star text-warning me-1"></i>{{ product.rating }} / 10</small></p>
                                 {% else %}
                                     <p class="card-text"><small class="text-muted">No Rating</small></p>
                                 {% endif %}
+                                <div>
+                                    {% if product.is_digital %}
+                                        <span class="badge bg-success"><i class="fa-solid fa-cloud-arrow-down me-1"></i>Digital</span>
+                                    {% elif product.is_low_stock %}
+                                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i>Low stock</span>
+                                    {% elif not product.is_in_stock %}
+                                        <span class="badge bg-danger"><i class="fa-solid fa-clock-rotate-left me-1"></i>Restocking</span>
+                                    {% else %}
+                                        <span class="badge bg-success"><i class="fa-solid fa-box-open me-1"></i>In stock</span>
+                                    {% endif %}
+                                </div>
                                 {% if request.user.is_superuser %}
                                     <div class="ms-3">
                                         <a href="{% url 'update_product' product.id %}" class="btn btn-sm btn-outline-primary me-2">Update</a>
@@ -115,23 +132,23 @@
         }
     });
 	</script>
-    
+
     <script type="text/javascript">
         $(document).ready(function() {
             $('#sort-selector').change(handleSortChange);
         });
-     
+
         function handleSortChange() {
             const selector = $(this);
             const currentUrl = new URL(window.location);
             const selectedValue = selector.val();
-     
+
             updateUrlParameters(currentUrl, selectedValue);
             history.pushState({}, '', currentUrl);
             $(document).trigger('sortingChanged');
             window.location.href = currentUrl;
         }
-     
+
         function updateUrlParameters(url, value) {
             if (value !== "reset") {
                 const [sort, direction] = value.split("_");

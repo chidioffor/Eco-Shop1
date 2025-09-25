@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
- 
+
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'profiles/css/profile.css' %}">
 {% endblock %}
- 
+
 {% block page_header %}
     <div class="container header-container">
         <div class="row">
@@ -16,7 +16,7 @@
         </div>
     </div>
 {% endblock %}
- 
+
 {% block content %}
     <div class="overlay"></div>
         <div class="row g-4">
@@ -84,8 +84,8 @@
         </div>
     </div>
 {% endblock %}
- 
+
 {% block postloadjs %}
-    {{ block.super }} 
+    {{ block.super }}
     <script type="text/javascript" src="{% static 'profiles/js/country_field.js' %}"></script>
 {% endblock %}

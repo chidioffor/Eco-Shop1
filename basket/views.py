@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -35,13 +35,22 @@ def add_item_to_basket(request, item_id):
         HttpResponseRedirect: Redirects URL.
     """
 
-    product = Product.objects.get(pk=item_id)
+    product = get_object_or_404(Product, pk=item_id)
 
-    quantity = get_quantity_from_request(request)
+    quantity_requested = get_quantity_from_request(request)
     redirect_url = request.POST.get('redirect_url')
     basket = get_basket_from_session(request)
+    current_quantity = basket.get(str(item_id), 0)
 
-    update_basket(basket, item_id, quantity)
+    allowed_quantity = validate_quantity_against_stock(
+        request, product, quantity_requested, current_quantity
+    )
+
+    if allowed_quantity <= 0:
+        request.session['basket'] = basket
+        return redirect(redirect_url)
+
+    update_basket(basket, item_id, allowed_quantity)
 
     request.session['basket'] = basket
     messages.success(request, f'Added {product.name} to your basket')
@@ -57,6 +66,7 @@ def get_basket_from_session(request):
 
 
 def update_basket(basket, item_id, quantity):
+    item_id = str(item_id)
     basket[item_id] = basket.get(item_id, 0) + quantity
 
 
@@ -73,19 +83,79 @@ def update_basket_quantity(request, item_id):
         HttpResponseRedirect: Redirects to the basket view page.
     """
 
-    product = Product.objects.get(pk=item_id)
+    product = get_object_or_404(Product, pk=item_id)
 
     quantity = int(request.POST.get('quantity', 0))
     basket = request.session.get('basket', {})
 
-    if quantity > 0:
-        basket[item_id] = quantity
-    else:
-        basket.pop(item_id, None)
+    if quantity <= 0:
+        basket.pop(str(item_id), None)
+        request.session['basket'] = basket
+        messages.info(request, f'{product.name} removed from basket')
+        return redirect(reverse('view_basket'))
+
+    allowed_quantity = validate_quantity_against_stock(
+        request, product, quantity, 0
+    )
+
+    if allowed_quantity <= 0:
+        basket.pop(str(item_id), None)
+        request.session['basket'] = basket
+        messages.warning(
+            request,
+            f'{product.name} was removed because the requested quantity is not available.',
+        )
+        return redirect(reverse('view_basket'))
+
+    basket[str(item_id)] = allowed_quantity
 
     request.session['basket'] = basket
-    messages.success(request, f'{product.name} : quantity updated to {basket[item_id]}')  # noqa
+    if allowed_quantity < quantity:
+        messages.warning(
+            request,
+            f'Only {allowed_quantity} units of {product.name} are available. '
+            'Quantity adjusted accordingly.',
+        )
+    else:
+        messages.success(
+            request, f'{product.name} : quantity updated to {allowed_quantity}'
+        )
     return redirect(reverse('view_basket'))
+
+
+def validate_quantity_against_stock(request, product, quantity_requested, current_quantity):
+    """Ensure a user cannot add more items than are available in stock."""
+
+    max_quantity = product.max_order_quantity()
+
+    if max_quantity is None:
+        return quantity_requested
+
+    if max_quantity == 0:
+        messages.error(
+            request,
+            f'Sorry, {product.name} is currently out of stock.',
+        )
+        return 0
+
+    desired_total = current_quantity + quantity_requested
+
+    if current_quantity >= max_quantity:
+        messages.warning(
+            request,
+            f'{product.name} is limited to {max_quantity} item(s) per order.',
+        )
+        return 0
+
+    if desired_total > max_quantity:
+        allowed = max_quantity - current_quantity
+        messages.warning(
+            request,
+            f'Only {allowed} more of {product.name} can be added to your basket.',
+        )
+        return allowed
+
+    return quantity_requested
 
 
 @require_POST

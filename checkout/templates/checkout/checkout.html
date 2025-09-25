@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 {% load basket_tools %}
- 
+
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'checkout/css/checkout.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 {% endblock %}
- 
+
 {% block page_header %}
     <div class="container header-container">
         <div class="row">
@@ -18,15 +18,15 @@
         </div>
     </div>
 {% endblock %}
- 
+
 {% block content %}
     <div class="overlay"></div>
     <div class="container">
         <div class="row">
             <div class="col-12 col-lg-6 order-lg-last mb-5">
-                <div class="card shadow-lg rounded-3">
+                <div class="card shadow-lg rounded-3 border-0">
                     <div class="card-body">
-                        <h3 class="card-title mb-4">Order Summary <span class="badge bg-success rounded-pill">{{ product_count }}</span></h3>
+                        <h3 class="card-title mb-4 d-flex justify-content-between align-items-center">Order Summary <span class="badge bg-success rounded-pill">{{ product_count }}</span></h3>
                         <div class="row">
                             <div class="col-7 offset-2">
                                 <p class="text-muted small">Item</p>
@@ -36,7 +36,7 @@
                             </div>
                         </div>
                         {% for item in basket_items %}
-                            <div class="row mb-3 align-items-center">
+                            <div class="row mb-3 align-items-center border-bottom pb-3">
                                 <div class="col-2">
                                     <a href="{% url 'product_detail' item.product.id %}">
                                         <img class="img-fluid rounded-3" src="{{ item.product.product_image.url }}" alt="{{ product.name }}">
@@ -44,7 +44,24 @@
                                 </div>
                                 <div class="col-7">
                                     <p class="mb-0 fw-bold">{{ item.product.name }}</p>
-                                    <p class="text-muted small">Qty: {{ item.quantity }}</p>
+                                    {% if item.product.brand %}
+                                        <p class="text-muted small mb-1">by {{ item.product.brand }}</p>
+                                    {% endif %}
+                                    {% if item.product.short_description %}
+                                        <p class="text-muted small mb-1">{{ item.product.short_description }}</p>
+                                    {% endif %}
+                                    <p class="text-muted small mb-1">Qty: {{ item.quantity }}</p>
+                                    {% if not item.product.is_digital %}
+                                        <p class="small {% if item.product.is_low_stock %}text-danger{% else %}text-success{% endif %} mb-0">
+                                            {% if item.product.is_low_stock %}
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>Low stock: {{ item.product.inventory_count }} left
+                                            {% else %}
+                                                <i class="fa-solid fa-boxes-stacked me-1"></i>In stock
+                                            {% endif %}
+                                        </p>
+                                    {% else %}
+                                        <p class="small text-success mb-0"><i class="fa-solid fa-cloud-arrow-down me-1"></i>Instant download</p>
+                                    {% endif %}
                                 </div>
                                 <div class="col-3 text-end">
                                     <p class="text-muted small">${{ item.product.price | calc_subtotal:item.quantity }}</p>
@@ -64,11 +81,27 @@
                                 <p class="mb-1 fw-bold">${{ grand_total | floatformat:2 }}</p>
                             </div>
                         </div>
+                        <div class="alert alert-light border mt-3" role="status">
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-truck-fast text-success fa-lg me-2"></i>
+                                {% if estimated_delivery_date %}
+                                    <div>
+                                        <p class="mb-0 fw-bold">Estimated delivery:</p>
+                                        <small>{{ estimated_delivery_date|date:"l, d F Y" }}</small>
+                                    </div>
+                                {% else %}
+                                    <div>
+                                        <p class="mb-0 fw-bold">Fast eco-friendly shipping</p>
+                                        <small>We dispatch within 24 hours on business days.</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-12 col-lg-6">
-                <div class="card shadow-lg rounded-3">
+                <div class="card shadow-lg rounded-3 border-0">
                     <div class="card-body">
                         <h3 class="card-title mb-4">Billing Details</h3>
                         <form action="{% url 'checkout' %}" method="POST" id="payment-form">
@@ -86,6 +119,7 @@
                                 {{ order_form.county | as_crispy_field }}
                                 {{ order_form.postcode | as_crispy_field }}
                                 {{ order_form.country | as_crispy_field }}
+                                {{ order_form.delivery_notes | as_crispy_field }}
                             </fieldset>
                             <div class="form-check mb-4">
                                 {% if user.is_authenticated %}
@@ -93,7 +127,7 @@
                                     <label class="form-check-label" for="id-save-info">Save shipping details to my profile</label>
                                 {% else %}
                                     <label class="form-check-label">
-                                        <a href="{% url 'account_signup'%}" class="text-decoration-none">Create an account</a> or 
+                                        <a href="{% url 'account_signup'%}" class="text-decoration-none">Create an account</a> or
                                         <a href="{% url 'account_login'%}" class="text-decoration-none">login</a> to save your details
                                     </label>
                                 {% endif %}
@@ -101,6 +135,7 @@
                             <fieldset class="mb-4">
                                 <legend class="fs-5 text-muted mb-3">Payment Information</legend>
                                 <div class="mb-3" id="card-element"></div>
+                                <div class="mb-3" id="payment-feedback" role="status"></div>
                                 <div class="mb-3 text-danger" id="card-errors" role="alert"></div>
                                 <input type="hidden" value="{{ client_secret }}" name="client_secret">
                             </fieldset>
@@ -112,9 +147,9 @@
                                     Complete Order <i class="fas fa-lock ms-2"></i>
                                 </button>
                             </div>
-                            <div class="alert alert-info mt-3 text-danger" role="alert">
+                            <div class="alert alert-info mt-3 text-dark" role="alert">
                                 <i class="fa-solid fa-circle-info me-2"></i>
-                                Your card will be charged <strong>${{ grand_total|floatformat:2 }}</strong>
+                                Your card will be charged <strong>${{ grand_total|floatformat:2 }}</strong>. All transactions are protected with 3D Secure when available.
                             </div>
                         </form>
                     </div>

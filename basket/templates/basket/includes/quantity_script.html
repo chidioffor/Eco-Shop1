@@ -1,39 +1,41 @@
 <script type="text/javascript">
-    
+
     document.addEventListener('DOMContentLoaded', function() {
-        
+
         const incrementBtns = document.querySelectorAll('.increment-qty');
         const decrementBtns = document.querySelectorAll('.decrement-qty');
- 
-        
+
+
         incrementBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const itemId = this.getAttribute('data-item_id');
                 const qtyInput = document.getElementById(`id_qty_${itemId}`);
                 let currentValue = parseInt(qtyInput.value);
-                if (currentValue < 99) {
+                const maxValue = qtyInput.dataset.max ? parseInt(qtyInput.dataset.max, 10) : null;
+                if (!maxValue || currentValue < maxValue) {
                     qtyInput.value = currentValue + 1;
                 }
             });
         });
- 
-        
+
+
         decrementBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const itemId = this.getAttribute('data-item_id');
                 const qtyInput = document.getElementById(`id_qty_${itemId}`);
                 let currentValue = parseInt(qtyInput.value);
-                if (currentValue > 1) {
+                const minValue = parseInt(qtyInput.min || '1', 10);
+                if (currentValue > minValue) {
                     qtyInput.value = currentValue - 1;
                 }
             });
         });
     });
-    
+
         document.addEventListener('DOMContentLoaded', function() {
             const updateButtons = document.querySelectorAll('.update-link');
             const updateForms = document.querySelectorAll('.update-form');
- 
+
             updateButtons.forEach((button, index) => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -46,7 +48,7 @@
            $('.remove-item').click(function(e) {
                 e.preventDefault();
                 var itemId = this.id.split('remove_')[1];
- 
+
         $.ajax({
             url: `/basket/remove/${itemId}/`,
             type: 'POST',
@@ -56,7 +58,7 @@
             },
             success: function(response) {
                 if (response.message === 'Item removed successfully') {
-                    
+
                     location.reload();
                 } else {
                     console.error('Error removing item:', response.message);
