@@ -1,824 +1,122 @@
-diff --git a/.vscode/arctictern.py b/.vscode/arctictern.py
-index bd164ce..9b3b4d6 100644
---- a/.vscode/arctictern.py
-+++ b/.vscode/arctictern.py
-@@ -61,7 +61,7 @@ def get_versions():
-     else:
-         with open(".vscode/version.txt", "w") as f:
-             f.write(str(THIS_VERSION))
--    
-+
-     r = requests.get(BASE_URL + ".vscode/version.txt")
-     CURRENT_VERSION = float(r.content)
- 
-@@ -76,7 +76,7 @@ def needs_upgrade():
-     """
- 
-     versions = get_versions()
--    
-+
-     print(f"Upstream version: {versions['current_version']}")
-     print(f"Local version: {versions['this_version']}")
- 
-@@ -106,7 +106,7 @@ def build_post_upgrade():
-         content += FINAL_LINES
-         with open(".vscode/post_upgrade.sh", "w") as f:
-             f.writelines(content)
--    
-+
-     print("Built post_upgrade.sh. Restart your workspace for it to take effect.")
- 
- 
-@@ -133,7 +133,7 @@ def process(file, suffix):
-         if result != 0:
-             os.remove(f"{file}.tmp")
-             return True
--    
-+
-     return False
- 
- 
-@@ -153,7 +153,7 @@ def start_migration():
-         result = process(file["filename"], file["url"])
-         if result == True:
-             push_and_recreate = True
--    
-+
-     if push_and_recreate:
-         write_version()
- 
-diff --git a/basket/templates/basket/basket.html b/basket/templates/basket/basket.html
-index a057987..7ca5c22 100644
---- a/basket/templates/basket/basket.html
-+++ b/basket/templates/basket/basket.html
-@@ -1,7 +1,7 @@
- {% extends "base.html" %}
- {% load static %}
- {% load basket_tools %}
-- 
-+
- {% block page_header %}
-     <div class="container header-container">
-         <div class="row">
-@@ -9,7 +9,7 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block content %}
- <div class="overlay"></div>
- <div class="container my-5">
-@@ -67,7 +67,7 @@
-                                     {% csrf_token %}
-                                     <div class="input-group input-group-sm">
-                                         <div class="input-group-prepend">
--                                            <button class="btn btn-outline-secondary decrement-qty" 
-+                                            <button class="btn btn-outline-secondary decrement-qty"
-                                                 data-item_id="{{ item.item_id }}" id="decrement-qty_{{ item.item_id }}" type="button">
-                                                 <i class="fas fa-minus fa-sm"></i>
-                                             </button>
-@@ -186,5 +186,5 @@
- 	</script>
- {% include 'basket/includes/quantity_script.html' %}
- {% endblock %}
--     
-+
- 
-diff --git a/basket/templates/basket/includes/quantity_script.html b/basket/templates/basket/includes/quantity_script.html
-index 10a01bf..f2e8b4d 100644
---- a/basket/templates/basket/includes/quantity_script.html
-+++ b/basket/templates/basket/includes/quantity_script.html
-@@ -1,11 +1,11 @@
- <script type="text/javascript">
--    
-+
-     document.addEventListener('DOMContentLoaded', function() {
--        
-+
-         const incrementBtns = document.querySelectorAll('.increment-qty');
-         const decrementBtns = document.querySelectorAll('.decrement-qty');
-- 
--        
-+
-+
-         incrementBtns.forEach(btn => {
-             btn.addEventListener('click', function() {
-                 const itemId = this.getAttribute('data-item_id');
-@@ -17,8 +17,8 @@
-                 }
-             });
-         });
-- 
--        
-+
-+
-         decrementBtns.forEach(btn => {
-             btn.addEventListener('click', function() {
-                 const itemId = this.getAttribute('data-item_id');
-@@ -31,11 +31,11 @@
-             });
-         });
-     });
--    
-+
-         document.addEventListener('DOMContentLoaded', function() {
-             const updateButtons = document.querySelectorAll('.update-link');
-             const updateForms = document.querySelectorAll('.update-form');
-- 
-+
-             updateButtons.forEach((button, index) => {
-                 button.addEventListener('click', function(e) {
-                     e.preventDefault();
-@@ -48,7 +48,7 @@
-            $('.remove-item').click(function(e) {
-                 e.preventDefault();
-                 var itemId = this.id.split('remove_')[1];
-- 
-+
-         $.ajax({
-             url: `/basket/remove/${itemId}/`,
-             type: 'POST',
-@@ -58,7 +58,7 @@
-             },
-             success: function(response) {
-                 if (response.message === 'Item removed successfully') {
--                    
-+
-                     location.reload();
-                 } else {
-                     console.error('Error removing item:', response.message);
-diff --git a/blog/templates/blog/blog.html b/blog/templates/blog/blog.html
-index f9d619c..c28c644 100644
---- a/blog/templates/blog/blog.html
-+++ b/blog/templates/blog/blog.html
-@@ -1,11 +1,11 @@
- {% load static %}
- <!DOCTYPE html>
- <html lang="en">
--    <head>  
-+    <head>
-         <meta charset="UTF-8">
-         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-         <link rel="stylesheet" href="{% static 'blog/css/blog.css' %}">
--        <title>Eco Shop</title>     
-+        <title>Eco Shop</title>
-     </head>
- 
-     <body>
-@@ -43,7 +43,7 @@
-                       </p>
-                       <p>As can be seen from our store, bamboo products are one of the best eco-friendly substitutes for plastic items.
-                          There are many bamboo products available in local and online stores.
--                          Unfortunately, some household waste cannot be composted or recycled. 
-+                          Unfortunately, some household waste cannot be composted or recycled.
-                           On the other hand, bamboo products are a great alternative as it is readily biodegradable.
-                       </p>
-                       <p>A simple zero waste swap is to replace single-use plastic bags with reusable shopping bags and produce bags made of organic fibre.
-@@ -64,7 +64,7 @@
-                       </p>
-                       <p>
-                           We communicate sustainability goals and expectations to suppliers, fostering collaboration and shared responsibility.
--                          Prioritize local suppliers who demonstrate commitment to sustainability, ethical labor practices, and environmental responsibility. 
-+                          Prioritize local suppliers who demonstrate commitment to sustainability, ethical labor practices, and environmental responsibility.
-                       </p>
-                       <p>We use eco-friendly materials, minimize packaging waste, and explore options for reusable or recyclable packaging.</p>
-                       <a href="https://www.theenvironmentalblog.org/2025/04/sustainable-supply-chain/" class="read-more" target="_blank">Read more →</a>
-diff --git a/checkout/static/checkout/css/checkout.css b/checkout/static/checkout/css/checkout.css
-index 1de5f8f..1b97fe9 100644
---- a/checkout/static/checkout/css/checkout.css
-+++ b/checkout/static/checkout/css/checkout.css
-@@ -32,7 +32,7 @@
-         color: #c40d20;
- }
- 
--select, 
-+select,
- select option {
-     color: #000000;
- }
-diff --git a/checkout/static/checkout/js/stripe_elements.js b/checkout/static/checkout/js/stripe_elements.js
-index 80456af..2eb4b64 100644
---- a/checkout/static/checkout/js/stripe_elements.js
-+++ b/checkout/static/checkout/js/stripe_elements.js
-@@ -27,14 +27,14 @@ card.mount('#card-element');
- 
- card.addEventListener('change', (event) => {
-     const errorContainer = document.getElementById('card-errors');
-- 
-+
-     if (event.error) {
-         errorContainer.innerHTML = createErrorMessage(event.error.message);
-     } else {
-         errorContainer.textContent = '';
-     }
- });
-- 
-+
- const createErrorMessage = (message) => `
-     <span class="invalid-icon" role="alert">
-         <i class="fa-solid fa-square-xmark me-2"></i>
-@@ -99,7 +99,7 @@ form.addEventListener('submit', async function(ev) {
- 
- 
-         var saveInfo = $('#id-save-info').prop('checked');
--        
-+
-         var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
-         var postData = {
-             'csrfmiddlewaretoken': csrfToken,
-@@ -107,7 +107,7 @@ form.addEventListener('submit', async function(ev) {
-             'save_info': saveInfo,
-         };
-         var url = '/checkout/store_checkout_info/';
-- 
-+
- 
-         await $.post(url, postData);
- 
-@@ -135,9 +135,9 @@ form.addEventListener('submit', async function(ev) {
-         enableForm();
-     }
- });
-- 
-+
- function getBillingDetails() {
--    
-+
-     return {
-         name: form.customer_name.value.trim(),
-         email: form.email.value.trim(),
-@@ -149,12 +149,12 @@ function getBillingDetails() {
-             country: form.country.value.trim(),
-             state: form.county.value.trim()
-         },
--        
-+
-     };
- }
-- 
-+
- function getShippingDetails() {
--    
-+
-     return {
-         name: form.customer_name.value.trim(),
-         phone: form.phone_number.value.trim(),
-@@ -166,19 +166,19 @@ function getShippingDetails() {
-             state: form.county.value.trim()
-         },
-     };
--    
-+
- }
- 
- function disableForm() {
-     card.update({ disabled: true });
-     submitButton.disabled = true;
- }
-- 
-+
- function enableForm() {
-     card.update({ disabled: false });
-     submitButton.disabled = false;
- }
-- 
-+
- function displayError(message) {
-     const html = `
-         <span class="invalid-icon" role="alert">
-diff --git a/checkout/templates/checkout/checkout.html b/checkout/templates/checkout/checkout.html
-index 2b71d18..a5c9b25 100644
---- a/checkout/templates/checkout/checkout.html
-+++ b/checkout/templates/checkout/checkout.html
-@@ -1,12 +1,12 @@
- {% extends "base.html" %}
- {% load static %}
- {% load basket_tools %}
-- 
-+
- {% block extra_css %}
-     <link rel="stylesheet" href="{% static 'checkout/css/checkout.css' %}">
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
- {% endblock %}
-- 
-+
- {% block page_header %}
-     <div class="container header-container">
-         <div class="row">
-@@ -18,7 +18,7 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block content %}
-     <div class="overlay"></div>
-     <div class="container">
-@@ -127,7 +127,7 @@
-                                     <label class="form-check-label" for="id-save-info">Save shipping details to my profile</label>
-                                 {% else %}
-                                     <label class="form-check-label">
--                                        <a href="{% url 'account_signup'%}" class="text-decoration-none">Create an account</a> or 
-+                                        <a href="{% url 'account_signup'%}" class="text-decoration-none">Create an account</a> or
-                                         <a href="{% url 'account_login'%}" class="text-decoration-none">login</a> to save your details
-                                     </label>
-                                 {% endif %}
-diff --git a/checkout/templates/checkout/checkout_complete.html b/checkout/templates/checkout/checkout_complete.html
-index e41b33c..99a27e1 100644
---- a/checkout/templates/checkout/checkout_complete.html
-+++ b/checkout/templates/checkout/checkout_complete.html
-@@ -1,11 +1,11 @@
- {% extends "base.html" %}
- {% load static %}
-- 
-+
- {% block extra_css %}
-     <link rel="stylesheet" href="{% static 'checkout/css/checkout.css' %}">
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
- {% endblock %}
-- 
-+
- {% block page_header %}
-     <div class="container header-container">
-         <div class="row">
-@@ -13,7 +13,7 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block content %}
-     <div class="overlay"></div>
-     <div class="container my-5">
-diff --git a/checkout/templates/checkout/confirmation_emails/confirmation_email_body.txt b/checkout/templates/checkout/confirmation_emails/confirmation_email_body.txt
-index 4e311f2..1faabd4 100644
---- a/checkout/templates/checkout/confirmation_emails/confirmation_email_body.txt
-+++ b/checkout/templates/checkout/confirmation_emails/confirmation_email_body.txt
-@@ -19,5 +19,5 @@ Thank you for your order!
- 
- Sincerely,
- 
--Customer Service 
-+Customer Service
- Eco Shop
-\ No newline at end of file
-diff --git a/faq/templates/faq/faq.html b/faq/templates/faq/faq.html
-index 3494822..fb8acfb 100644
---- a/faq/templates/faq/faq.html
-+++ b/faq/templates/faq/faq.html
-@@ -1,11 +1,11 @@
- {% load static %}
- <!DOCTYPE html>
- <html lang="en">
--    <head>  
-+    <head>
-         <meta charset="UTF-8">
-         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-         <link rel="stylesheet" href="{% static 'faq/css/faq.css' %}">
--        <title>Eco Shop</title>     
-+        <title>Eco Shop</title>
-     </head>
- 
- <body>
-diff --git a/home/templates/home/index.html b/home/templates/home/index.html
-index 2fa1b6d..dc1f1d6 100644
---- a/home/templates/home/index.html
-+++ b/home/templates/home/index.html
-@@ -1,7 +1,7 @@
- {% extends "base.html" %}
-- 
-+
- {% load static %}
-- 
-+
- {% block page_header %}
-     <div class="container">
-         <div class="row">
-@@ -9,7 +9,7 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block content %}
-     <div class="container min-vh-100 d-flex align-items-center">
-         <div class="row w-100">
-@@ -24,8 +24,8 @@
-             </div>
-         </div>
-     </div>
--    
--    <a href="{% url 'products' %}?category=deals,clearance" 
-+
-+    <a href="{% url 'products' %}?category=deals,clearance"
-         class="btn btn-success text-uppercase fw-bold clearance">
-         Clearance and Deals <i class="fa-solid fa-eye"></i>
-     </a>
-@@ -68,7 +68,7 @@
-     </footer>
-     <!--Mailchimp-->
-     <div id="mc_embed_signup">
--        <form action="https://herokuapp.us3.list-manage.com/subscribe/post?u=61b13adb4a2fd6d7c0604cec5&amp;id=1115231364&amp;f_id=002f04e1f0" method="post" 
-+        <form action="https://herokuapp.us3.list-manage.com/subscribe/post?u=61b13adb4a2fd6d7c0604cec5&amp;id=1115231364&amp;f_id=002f04e1f0" method="post"
-             id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank">
-             <div id="mc_embed_signup_scroll">
-                 <h5>Subscribe for Exclusive offers!</h5>
-@@ -108,7 +108,7 @@
-     </script>
-     <script type="text/javascript">
-     (function($) {
--      window.fnames = new Array(); 
-+      window.fnames = new Array();
-       window.ftypes = new Array();
-       fnames[0] = 'EMAIL'; ftypes[0] = 'email';
-       fnames[1] = 'FNAME'; ftypes[1] = 'text';
-@@ -118,7 +118,7 @@
-       fnames[5] = 'BIRTHDAY'; ftypes[5] = 'birthday';
-       fnames[6] = 'COMPANY'; ftypes[6] = 'text';
-     })(jQuery);
--    
-+
-     var $mcj = jQuery.noConflict(true);
-     </script>
-     <script type="text/javascript">
-diff --git a/products/templates/products/add_product.html b/products/templates/products/add_product.html
-index 861406a..608e0eb 100644
---- a/products/templates/products/add_product.html
-+++ b/products/templates/products/add_product.html
-@@ -1,6 +1,6 @@
- {% extends "base.html" %}
- {% load static %}
-- 
-+
- {% block page_header %}
-     <div class="container header-container">
-         <div class="row">
-@@ -13,7 +13,7 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block content %}
-     <div class="overlay"></div>
-     <div class="container">
-diff --git a/products/templates/products/products.html b/products/templates/products/products.html
-index 1864285..0dbb63a 100644
---- a/products/templates/products/products.html
-+++ b/products/templates/products/products.html
-@@ -1,7 +1,7 @@
- {% extends "base.html" %}
-- 
-+
- {% load static %}
-- 
-+
- {% block page_header %}
-     <div class="container header-container">
-         <div class="row">
-@@ -9,7 +9,7 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block content %}
-     <div class="overlay"></div>
-     <div class="container-fluid">
-@@ -132,23 +132,23 @@
-         }
-     });
- 	</script>
--    
-+
-     <script type="text/javascript">
-         $(document).ready(function() {
-             $('#sort-selector').change(handleSortChange);
-         });
--     
-+
-         function handleSortChange() {
-             const selector = $(this);
-             const currentUrl = new URL(window.location);
-             const selectedValue = selector.val();
--     
-+
-             updateUrlParameters(currentUrl, selectedValue);
-             history.pushState({}, '', currentUrl);
-             $(document).trigger('sortingChanged');
-             window.location.href = currentUrl;
-         }
--     
-+
-         function updateUrlParameters(url, value) {
-             if (value !== "reset") {
-                 const [sort, direction] = value.split("_");
-diff --git a/products/templates/products/update_product.html b/products/templates/products/update_product.html
-index 0041917..cf56393 100644
---- a/products/templates/products/update_product.html
-+++ b/products/templates/products/update_product.html
-@@ -1,6 +1,6 @@
- {% extends "base.html" %}
- {% load static %}
-- 
-+
- {% block page_header %}
-     <div class="container header-container">
-         <div class="row">
-@@ -13,7 +13,7 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block content %}
-     <div class="overlay"></div>
-     <div class="container">
-diff --git a/profiles/static/profiles/js/country_field.js b/profiles/static/profiles/js/country_field.js
-index c35db58..0c051c9 100644
---- a/profiles/static/profiles/js/country_field.js
-+++ b/profiles/static/profiles/js/country_field.js
-@@ -1,5 +1,5 @@
- const countrySelect = document.getElementById('id_primary_country');
-- 
-+
- function setColor(element) {
-     if (!element.value) {
-         element.style.color = '#aab7c4';
-@@ -7,9 +7,9 @@ function setColor(element) {
-         element.style.color = '#000';
-     }
- }
-- 
-+
- setColor(countrySelect);
-- 
-+
- countrySelect.addEventListener('change', function() {
-     setColor(this);
- });
-\ No newline at end of file
-diff --git a/profiles/templates/profiles/profile.html b/profiles/templates/profiles/profile.html
-index 4550544..d2d32d8 100644
---- a/profiles/templates/profiles/profile.html
-+++ b/profiles/templates/profiles/profile.html
-@@ -1,10 +1,10 @@
- {% extends "base.html" %}
- {% load static %}
-- 
-+
- {% block extra_css %}
-     <link rel="stylesheet" href="{% static 'profiles/css/profile.css' %}">
- {% endblock %}
-- 
-+
- {% block page_header %}
-     <div class="container header-container">
-         <div class="row">
-@@ -16,7 +16,7 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block content %}
-     <div class="overlay"></div>
-         <div class="row g-4">
-@@ -84,8 +84,8 @@
-         </div>
-     </div>
- {% endblock %}
-- 
-+
- {% block postloadjs %}
--    {{ block.super }} 
-+    {{ block.super }}
-     <script type="text/javascript" src="{% static 'profiles/js/country_field.js' %}"></script>
- {% endblock %}
-\ No newline at end of file
-diff --git a/static/css/base.css b/static/css/base.css
-index cb46bbb..0ee8bfa 100644
---- a/static/css/base.css
-+++ b/static/css/base.css
-@@ -102,7 +102,7 @@ body {
- 
- .dropdown-icon {
-     margin-left: 5px;
--    font-size: 0.8em; 
-+    font-size: 0.8em;
-     vertical-align: middle;
- }
- .overlay {
-@@ -112,7 +112,7 @@ body {
-     width: 100vw;
-     top: 0;
-     left: 0;
--    z-index: -1; 
-+    z-index: -1;
- }
- 
- .scroll-to-top-button {
-@@ -132,13 +132,13 @@ body {
-     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-     transition: all 0.3s ease;
- }
-- 
-+
- .scroll-to-top-button:hover {
-     background-color: #000;
-     transform: translateY(-3px);
-     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
- }
-- 
-+
- .scroll-to-top-button svg {
-     width: 24px;
-     height: 24px;
-@@ -152,8 +152,8 @@ body {
- .clearance {
-     bottom: 80px;
-     left: 20px;
--    z-index: 1050; 
--    padding: 12px 20px; 
-+    z-index: 1050;
-+    padding: 12px 20px;
-     border-radius: 5px;
-     position: fixed;
- 
-@@ -246,7 +246,7 @@ body {
- 
- /*  Moble navbar collapse */
- @media screen and (max-width: 991px) {
--     
-+
-     .header-container {
-         padding-top: 116px;
-     }
-@@ -275,7 +275,7 @@ body {
-     }
- 
-     .nav-link i.fa-lg {
--        font-size: 10px;            
-+        font-size: 10px;
-     }
- 
-     #banner h4 {
-@@ -304,7 +304,7 @@ body {
-     }
- 
- }
--    
-+
- @media screen and (max-width: 991.98px) {
-   .table-responsive {
-     overflow-x: auto;
-@@ -367,7 +367,7 @@ body {
- 
-   td,
-   th {
--    font-size: 13px; 
-+    font-size: 13px;
-     padding: 0.4rem 0.5rem;
-   }
- 
-diff --git a/templates/allauth/account/password_reset_done.html b/templates/allauth/account/password_reset_done.html
-index 866e4b2..7c83509 100644
---- a/templates/allauth/account/password_reset_done.html
-+++ b/templates/allauth/account/password_reset_done.html
-@@ -12,6 +12,6 @@
-     {% if user.is_authenticated %}
-     {% include "account/snippets/already_logged_in.html" %}
-     {% endif %}
--    
-+
-     <p>{% blocktrans %}We have sent you an e-mail. If you have not received it please check your spam folder. Otherwise contact us if you do not receive it in a few minutes.{% endblocktrans %}</p>
- {% endblock %}
-diff --git a/templates/allauth/socialaccount/snippets/provider_list.html b/templates/allauth/socialaccount/snippets/provider_list.html
-index e76a296..f2187ae 100644
---- a/templates/allauth/socialaccount/snippets/provider_list.html
-+++ b/templates/allauth/socialaccount/snippets/provider_list.html
-@@ -6,15 +6,15 @@
- {% if provider.id == "openid" %}
- {% for brand in provider.get_brands %}
- <li>
--  <a title="{{brand.name}}" 
--     class="socialaccount_provider {{provider.id}} {{brand.id}}" 
-+  <a title="{{brand.name}}"
-+     class="socialaccount_provider {{provider.id}} {{brand.id}}"
-      href="{% provider_login_url provider.id openid=brand.openid_url process=process %}"
-      >{{brand.name}}</a>
- </li>
- {% endfor %}
- {% endif %}
- <li>
--  <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}" 
-+  <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}"
-      href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}">{{provider.name}}</a>
- </li>
- {% endfor %}
-diff --git a/templates/base.html b/templates/base.html
-index 5af12e3..b523fdf 100644
---- a/templates/base.html
-+++ b/templates/base.html
-@@ -36,7 +36,7 @@
-             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-             <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-             <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
--            <script src="https://js.stripe.com/v3/"></script>  
-+            <script src="https://js.stripe.com/v3/"></script>
-             {% endblock %}
- 
-         {% block extra_js %}
-@@ -146,13 +146,13 @@
- 
-         {% block content %}
-         {% endblock %}
--    
-+
-         {% block postloadjs %}
- 
-         <script type="text/javascript">
-             $('.toast').toast('show');
-           </script>
- 
--        {% endblock %}        
-+        {% endblock %}
-     </body>
- </html>
-\ No newline at end of file
-diff --git a/templates/errors/404.html b/templates/errors/404.html
-index 81ade6e..72b2ec1 100644
---- a/templates/errors/404.html
-+++ b/templates/errors/404.html
-@@ -14,7 +14,7 @@
-                 </h1>
-                 <div class="my-5">
-                     <h4>
--                        <a href="{% url 'products' %}" 
-+                        <a href="{% url 'products' %}"
-                             class="shop-now-button btn btn-lg rounded-0 text-uppercase py-3 fw-bold">
-                                 Return to shop
-                         </a>
-diff --git a/templates/includes/toasts/toast_error.html b/templates/includes/toasts/toast_error.html
-index b531405..614fc23 100644
---- a/templates/includes/toasts/toast_error.html
-+++ b/templates/includes/toasts/toast_error.html
-@@ -1,5 +1,5 @@
- <div class="toast custom-toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
--    <div class="toast-header bg-danger"> 
-+    <div class="toast-header bg-danger">
-         <strong class="me-auto text-white">Error!</strong>
-         <small class="text-white">Just Now</small>
-         <button type="button" class="btn-close" data-dismiss="toast" aria-label="Close"></button>
-diff --git a/templates/includes/toasts/toast_info.html b/templates/includes/toasts/toast_info.html
-index 68a4508..8c82825 100644
---- a/templates/includes/toasts/toast_info.html
-+++ b/templates/includes/toasts/toast_info.html
-@@ -1,5 +1,5 @@
- <div class="toast custom-toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
--    <div class="toast-header bg-info"> 
-+    <div class="toast-header bg-info">
-         <strong class="me-auto text-white">Info!</strong>
-         <small class="text-white">Just Now</small>
-         <button type="button" class="btn-close" data-dismiss="toast" aria-label="Close"></button>
-diff --git a/templates/includes/toasts/toast_success.html b/templates/includes/toasts/toast_success.html
-index daa24f5..9dc76de 100644
---- a/templates/includes/toasts/toast_success.html
-+++ b/templates/includes/toasts/toast_success.html
-@@ -1,5 +1,5 @@
- <div class="toast custom-toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
--    <div class="toast-header bg-success"> 
-+    <div class="toast-header bg-success">
-         <strong class="me-auto text-white">Success!</strong>
-         <small class="text-white">Thank you</small>
-         <button type="button" class="btn-close" data-dismiss="toast" aria-label="Close"></button>
-@@ -33,7 +33,7 @@
-             <div class="row mt-3">
-                 <div class="col">
-                     <p class="fw-bold mb-2 text-dark">
--                        Total{% if free_delivery_delta > 0 %} (Exc. delivery){% endif %}: 
-+                        Total{% if free_delivery_delta > 0 %} (Exc. delivery){% endif %}:
-                         <span class="float-end">${{ total|floatformat:2 }}</span>
-                     </p>
-                     {% if free_delivery_delta > 0 %}
-@@ -47,6 +47,6 @@
-                     </a>
-                 </div>
-             </div>
--        {% endif %}  
-+        {% endif %}
-     </div>
- </div>
-\ No newline at end of file
-diff --git a/templates/includes/toasts/toast_warning.html b/templates/includes/toasts/toast_warning.html
-index b7cff0a..e0c66d5 100644
---- a/templates/includes/toasts/toast_warning.html
-+++ b/templates/includes/toasts/toast_warning.html
-@@ -1,5 +1,5 @@
- <div class="toast custom-toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
--    <div class="toast-header bg-warning"> 
-+    <div class="toast-header bg-warning">
-         <strong class="me-auto text-white">Warning!</strong>
-         <small class="text-white">Just Now</small>
-         <button type="button" class="btn-close" data-dismiss="toast" aria-label="Close"></button>
+diff --git a/products/migrations/0005_ensure_product_inventory_fields.py b/products/migrations/0005_ensure_product_inventory_fields.py
+new file mode 100644
+index 0000000..d2cb2d0
+--- /dev/null
++++ b/products/migrations/0005_ensure_product_inventory_fields.py
+@@ -0,0 +1,116 @@
++"""Ensure recently added product metadata columns exist for legacy databases."""
++
++from django.db import migrations, models
++
++
++def add_missing_fields(apps, schema_editor):
++    Product = apps.get_model("products", "Product")
++    table_name = Product._meta.db_table
++    connection = schema_editor.connection
++
++    with connection.cursor() as cursor:
++        existing_columns = {
++            column.name for column in connection.introspection.get_table_description(cursor, table_name)
++        }
++
++    def ensure_field(name, field):
++        if name in existing_columns:
++            return
++        field.set_attributes_from_name(name)
++        schema_editor.add_field(Product, field)
++
++    ensure_field(
++        "brand",
++        models.CharField(
++            max_length=120,
++            blank=True,
++            default="",
++            help_text="Optional brand or maker shown on listings.",
++        ),
++    )
++    ensure_field(
++        "short_description",
++        models.CharField(
++            max_length=255,
++            blank=True,
++            default="",
++            help_text="Used on product listings and marketing widgets.",
++        ),
++    )
++    ensure_field(
++        "inventory_count",
++        models.PositiveIntegerField(
++            default=0,
++            help_text="Current sellable stock for physical items.",
++        ),
++    )
++    ensure_field(
++        "low_stock_threshold",
++        models.PositiveIntegerField(
++            default=5,
++            help_text="Show a warning badge when stock is at or below this value.",
++        ),
++    )
++    ensure_field(
++        "is_active",
++        models.BooleanField(
++            default=True,
++            help_text="Inactive products are hidden from the shop front.",
++        ),
++    )
++    ensure_field(
++        "is_digital",
++        models.BooleanField(
++            default=False,
++            help_text="Digital goods ignore stock tracking and always remain in stock.",
++        ),
++    )
++    ensure_field(
++        "weight_grams",
++        models.PositiveIntegerField(
++            blank=True,
++            null=True,
++            help_text="Used to fine tune delivery estimates.",
++        ),
++    )
++
++
++def remove_fields(apps, schema_editor):
++    """Best effort rollback for databases that added the columns in this migration."""
++    Product = apps.get_model("products", "Product")
++    table_name = Product._meta.db_table
++    connection = schema_editor.connection
++
++    with connection.cursor() as cursor:
++        existing_columns = {
++            column.name for column in connection.introspection.get_table_description(cursor, table_name)
++        }
++
++    def drop_field(name):
++        if name not in existing_columns:
++            return
++        field = Product._meta.get_field(name)
++        schema_editor.remove_field(Product, field)
++
++    # Drop in reverse order to respect potential constraints.
++    for field_name in [
++        "weight_grams",
++        "is_digital",
++        "is_active",
++        "low_stock_threshold",
++        "inventory_count",
++        "short_description",
++        "brand",
++    ]:
++        drop_field(field_name)
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ("products", "0003_alter_category_options_category_description_and_more"),
++    ]
++
++    operations = [
++        migrations.RunPython(add_missing_fields, remove_fields),
++    ]
