@@ -23,7 +23,7 @@
         <div class="col">
             {% if basket_items %}
             <div class="table-responsive rounded shadow-sm">
-                <table class="table table-hover">
+                <table class="table table-hover align-middle">
                     <thead class="bg-light">
                         <tr>
                             <th scope="col" class="border-0">Product</th>
@@ -38,9 +38,11 @@
                             <td class="align-middle">
                                 <div class="d-flex align-items-center">
                                     {% if item.product.product_image %}
-                                    <img class="img-fluid rounded mr-3" src="{{ item.product.product_image.url }}" alt="item-image" style="max-width: 80px;">
+                                        <img class="img-fluid rounded me-3" src="{{ item.product.product_image.url }}"
+                                            alt="Image of {{ item.product.name }}" style="max-width: 80px;">
                                     {% else %}
-                                    <img class="img-fluid rounded mr-3" src="{{ MEDIA_URL}}noimage.png" style="max-width: 80px;">
+                                        <img class="img-fluid rounded me-3" src="{{ MEDIA_URL }}noimage.png"
+                                            alt="Image not available" style="max-width: 80px;">
                                     {% endif %}
                                     <div>
                                         <h6 class="mb-0">{{ item.product.name }}</h6>
@@ -63,31 +65,33 @@
                             </td>
                             <td class="align-middle">${{ item.product.price }}</td>
                             <td class="align-middle">
-                                <form class="form update-form" method="POST" action="{% url 'update_basket_quantity' item.item_id %}" id="updateForm">
+                                <form class="form update-form" method="POST"
+                                    action="{% url 'update_basket_quantity' item.item_id %}"
+                                    id="updateForm_{{ item.item_id }}">
                                     {% csrf_token %}
                                     <div class="input-group input-group-sm">
-                                        <div class="input-group-prepend">
-                                            <button class="btn btn-outline-secondary decrement-qty"
-                                                data-item_id="{{ item.item_id }}" id="decrement-qty_{{ item.item_id }}" type="button">
-                                                <i class="fas fa-minus fa-sm"></i>
-                                            </button>
-                                        </div>
+                                        <button class="btn btn-outline-secondary decrement-qty"
+                                            data-item_id="{{ item.item_id }}" id="decrement-qty_{{ item.item_id }}"
+                                            type="button" aria-label="Decrease quantity for {{ item.product.name }}">
+                                            <i class="fas fa-minus fa-sm"></i>
+                                        </button>
                                         {% with max_qty=item.product.max_order_quantity %}
                                         <input class="form-control form-control-sm qty_input text-center" type="number"
                                             name="quantity" value="{{ item.quantity }}" min="1" {% if max_qty %}max="{{ max_qty }}"{% endif %}
                                             data-item_id="{{ item.item_id }}" data-max="{{ max_qty|default_if_none:'' }}"
                                             id="id_qty_{{ item.item_id }}">
                                         {% endwith %}
-                                        <div class="input-group-append">
-                                            <button class="btn btn-outline-secondary increment-qty"
-                                                data-item_id="{{ item.item_id }}" id="increment-qty_{{ item.item_id }}" type="button">
-                                                <i class="fas fa-plus fa-sm"></i>
-                                            </button>
-                                        </div>
+                                        <button class="btn btn-outline-secondary increment-qty"
+                                            data-item_id="{{ item.item_id }}" id="increment-qty_{{ item.item_id }}"
+                                            type="button" aria-label="Increase quantity for {{ item.product.name }}">
+                                            <i class="fas fa-plus fa-sm"></i>
+                                        </button>
                                     </div>
                                     <div class="mt-2">
-                                        <a class="btn btn-sm btn-outline-primary me-2 update-link" id="updateButton">Update</a>
-                                        <a class="btn btn-sm btn-outline-danger remove-item" id="remove_{{ item.item_id }}">Remove</a>
+                                        <a class="btn btn-sm btn-outline-primary me-2 update-link"
+                                            data-item_id="{{ item.item_id }}">Update</a>
+                                        <a class="btn btn-sm btn-outline-danger remove-item"
+                                            data-item_id="{{ item.item_id }}" id="remove_{{ item.item_id }}">Remove</a>
                                     </div>
                                 </form>
                             </td>
@@ -142,7 +146,7 @@
                             <i class="fa-solid fa-angles-left"></i> Continue Shopping
                         </a>
                         <a href="{% url 'checkout' %}" class="btn btn-success btn-lg text-uppercase">
-                            Secure Checkout  <i class="fas fa-lock ml-2"></i>
+                            Secure Checkout <i class="fas fa-lock ms-2"></i>
                         </a>
                     </div>
                 </div>
